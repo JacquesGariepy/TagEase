@@ -1,0 +1,39 @@
+{
+    "extensionName": {
+      "message": "TagEase"
+    },
+    "extensionDescription": {
+      "message": "TagEase simplifies the management of tags and values in input fields, making data entry and organization seamless and efficient."
+    },
+    "manageTags": {
+      "message": "Tag Manager"
+    },
+    "addTag": {
+      "message": "Add"
+    },
+    "tagPlaceholder": {
+      "message": "Tag"
+    },
+    "valuePlaceholder": {
+      "message": "Value"
+    },
+    "edit": {
+      "message": "Edit"
+    },
+    "delete": {
+      "message": "Delete"
+    },
+    "footerTitle": {
+      "message": "About TagEase"
+    },
+    "footerDescription": {
+      "message": "TagEase helps you manage tags efficiently."
+    },
+    "footerLink": {
+      "message": "Visit our website"
+    },
+    "footerCopyright": {
+      "message": "2024 Your Company"
+    }
+  }
+  

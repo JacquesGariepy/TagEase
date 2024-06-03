@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title id="manageTagsTitle"></title>
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container mt-3">
+    <h1 id="manageTagsHeader" class="text-center"></h1>
+    <form id="tagForm">
+      <div class="form-group">
+        <textarea id="key" class="form-control" placeholder="" required></textarea>
+      </div>
+      <div class="form-group">
+        <textarea id="value" class="form-control" placeholder="" required></textarea>
+      </div>
+      <div class="d-flex justify-content-between mb-3">
+        <button type="button" id="addButton" class="btn btn-primary"></button>
+        <button type="button" id="editButton" class="btn btn-warning" style="display:none;"></button>
+      </div>
+    </form>
+    <ul id="tagList" class="list-group"></ul>
+    <div class="footer mt-3 text-center">
+      <p id="footerTitle" class="mb-1"></p>
+      <p id="footerDescription" class="mb-1"></p>
+      <p><a id="footerLink" href="https://www.example.com" target="_blank"></a></p>
+      <p id="footerCopyright" class="mb-0"></p>
+    </div>
+  </div>
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script src="popup.js"></script>
+  <script src="i18n.js"></script>
+</body>
+</html>
