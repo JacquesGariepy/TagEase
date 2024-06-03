@@ -62,7 +62,22 @@ function createTagList(tags) {
     tagList.appendChild(tagItem);
   }
 
+  const manageTagsButton = document.createElement('button');
+  manageTagsButton.textContent = 'Manage Tags';
+  manageTagsButton.style.display = 'block';
+  manageTagsButton.style.margin = '10px auto';
+  manageTagsButton.style.backgroundColor = '#007bff';
+  manageTagsButton.style.color = '#fff';
+  manageTagsButton.style.border = 'none';
+  manageTagsButton.style.padding = '10px';
+  manageTagsButton.style.borderRadius = '5px';
+  manageTagsButton.style.cursor = 'pointer';
+  manageTagsButton.addEventListener('click', () => {
+    chrome.runtime.openOptionsPage();
+  });
+
   tagListContainer.appendChild(tagList);
+  tagListContainer.appendChild(manageTagsButton);
   document.body.appendChild(tagListContainer);
 }
 
