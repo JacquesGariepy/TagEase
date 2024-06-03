@@ -1,77 +1,98 @@
 // content.js
 
-// Fonction pour injecter l'icône dans les champs de saisie
-function injectIcon(element) {
-  const icon = document.createElement('span');
-  icon.textContent = '🔍'; // Utilisez l'icône de votre choix
-  icon.style.cursor = 'pointer';
-  icon.style.marginLeft = '5px';
-  icon.classList.add('tag-icon');
-
-  element.parentNode.insertBefore(icon, element.nextSibling);
-
-  icon.addEventListener('click', () => {
-    showTagSuggestions(element);
-  });
+// Fonction pour créer un conteneur
+function createContainer() {
+  const container = document.createElement('div');
+  container.style.marginTop = '20px';
+  container.style.padding = '10px';
+  container.style.border = '1px solid #ddd';
+  container.style.borderRadius = '5px';
+  container.style.backgroundColor = '#f9f9f9';
+  container.style.maxWidth = '600px';
+  container.style.margin = '20px auto';
+  return container;
 }
 
-// Fonction pour afficher les suggestions de tags
-function showTagSuggestions(inputElement) {
-  chrome.storage.sync.get(['tags'], (result) => {
-    const tags = result.tags || {};
-    const tagList = document.createElement('ul');
-    tagList.classList.add('tag-suggestions');
+// Fonction pour créer une carte
+function createCard(key, value) {
+  const card = document.createElement('div');
+  card.style.border = '1px solid #ddd';
+  card.style.borderRadius = '5px';
+  card.style.padding = '10px';
+  card.style.marginBottom = '10px';
+  card.style.backgroundColor = '#fff';
+  card.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.1)';
 
-    for (const [key, value] of Object.entries(tags)) {
-      const tagItem = document.createElement('li');
-      tagItem.textContent = `${key}: ${value}`;
-      tagItem.style.cursor = 'pointer';
-      tagItem.addEventListener('click', () => {
-        inputElement.value = value;
-        document.body.removeChild(tagList);
-      });
-      tagList.appendChild(tagItem);
-    }
+  const cardTitle = document.createElement('h5');
+  cardTitle.style.marginTop = '0';
+  cardTitle.textContent = key;
 
-    document.body.appendChild(tagList);
-    positionTagList(tagList, inputElement);
-  });
-}
+  const cardText = document.createElement('p');
+  cardText.style.display = 'none';
+  cardText.textContent = value;
 
-// Fonction pour positionner la liste des suggestions de tags
-function positionTagList(tagList, inputElement) {
-  const rect = inputElement.getBoundingClientRect();
-  tagList.style.position = 'absolute';
-  tagList.style.top = `${rect.bottom + window.scrollY}px`;
-  tagList.style.left = `${rect.left + window.scrollX}px`;
-  tagList.style.backgroundColor = 'white';
-  tagList.style.border = '1px solid #ccc';
-  tagList.style.listStyleType = 'none';
-  tagList.style.padding = '5px';
-  tagList.style.margin = '0';
-  tagList.style.zIndex = '1000';
-}
-
-// Parcourir tous les champs de saisie et textarea et injecter l'icône
-document.querySelectorAll('input[type="text"], textarea').forEach(injectIcon);
-
-// Fonction pour gérer l'autocomplétion des tags
-function handleAutoComplete(event) {
-  chrome.storage.sync.get(['tags'], (result) => {
-    const tags = result.tags || {};
-    const words = event.target.value.split(' ');
-    const lastWord = words[words.length - 1];
-
-    if (tags[lastWord]) {
-      words[words.length - 1] = tags[lastWord];
-      event.target.value = words.join(' ');
+  const toggleButton = document.createElement('button');
+  toggleButton.textContent = 'Show';
+  toggleButton.style.marginBottom = '10px';
+  toggleButton.style.background = 'none';
+  toggleButton.style.border = 'none';
+  toggleButton.style.color = '#007bff';
+  toggleButton.style.cursor = 'pointer';
+  toggleButton.addEventListener('click', () => {
+    if (cardText.style.display === 'none' || !cardText.style.display) {
+      cardText.style.display = 'block';
+      toggleButton.textContent = 'Hide';
+    } else {
+      cardText.style.display = 'none';
+      toggleButton.textContent = 'Show';
     }
   });
+
+  card.appendChild(cardTitle);
+  card.appendChild(cardText);
+  card.appendChild(toggleButton);
+
+  return card;
 }
 
-// Ajouter un écouteur d'événement pour l'autocomplétion des tags
-document.addEventListener('input', (event) => {
-  if (event.target.matches('input[type="text"], textarea')) {
-    handleAutoComplete(event);
-  }
-});
+// Fonction pour afficher un message lorsqu'il n'y a pas de tags
+function displayNoTagsMessage(container) {
+  const noTagsMessage = document.createElement('p');
+  noTagsMessage.textContent = 'No tags available. Click here to manage tags.';
+  noTagsMessage.style.textAlign = 'center';
+  noTagsMessage.style.color = '#555';
+  noTagsMessage.style.cursor = 'pointer';
+  noTagsMessage.addEventListener('click', () => {
+    // Logic to open the tag management interface
+    chrome.runtime.openOptionsPage(); // Assuming this opens the management interface
+  });
+  container.appendChild(noTagsMessage);
+}
+
+// Fonction pour injecter les tags dans la page web
+function injectTags() {
+  chrome.storage.sync.get(['tags'], (result) => {
+    const tags = result.tags || {};
+    const existingContainer = document.getElementById('chrome-extension-tags-container');
+    if (existingContainer) {
+      existingContainer.remove();
+    }
+
+    const container = createContainer();
+    container.id = 'chrome-extension-tags-container';
+
+    if (Object.keys(tags).length === 0) {
+      displayNoTagsMessage(container);
+    } else {
+      for (const [key, value] of Object.entries(tags)) {
+        const card = createCard(key, value);
+        container.appendChild(card);
+      }
+    }
+
+    document.body.prepend(container); // Inject the container at the top of the body
+  });
+}
+
+// Inject tags when the content script is loaded
+injectTags();
