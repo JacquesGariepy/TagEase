@@ -1,6 +1,8 @@
 // content.js
 
 let selectedInput = null;
+let isDragging = false;
+let offset = { x: 0, y: 0 };
 
 // Fonction pour créer l'icône flottante
 function createFloatingIcon() {
@@ -23,6 +25,30 @@ function createFloatingIcon() {
   icon.style.fontSize = '24px';
   icon.textContent = '+';
   document.body.appendChild(icon);
+
+  // Ajouter des événements pour permettre le déplacement de l'icône
+  icon.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    offset.x = e.clientX - icon.getBoundingClientRect().left;
+    offset.y = e.clientY - icon.getBoundingClientRect().top;
+    icon.style.transition = 'none';
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (isDragging) {
+      icon.style.left = `${e.clientX - offset.x}px`;
+      icon.style.top = `${e.clientY - offset.y}px`;
+      icon.style.bottom = 'auto';
+      icon.style.right = 'auto';
+    }
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (isDragging) {
+      isDragging = false;
+      icon.style.transition = 'all 0.2s ease';
+    }
+  });
 
   icon.addEventListener('click', () => {
     toggleTagList();
@@ -73,7 +99,7 @@ function createTagList(tags) {
   manageTagsButton.style.borderRadius = '5px';
   manageTagsButton.style.cursor = 'pointer';
   manageTagsButton.addEventListener('click', () => {
-    chrome.runtime.openOptionsPage();
+    toggleManageTagsModal();
   });
 
   tagListContainer.appendChild(tagList);
@@ -109,6 +135,7 @@ function injectTags() {
 
     createFloatingIcon();
     createTagList(tags);
+    createManageTagsModal();
   });
 }
 
@@ -121,5 +148,192 @@ document.addEventListener('focusin', (event) => {
   }
 });
 
-// Injecter les tags et l'icône flottante lors du chargement du script de contenu
+// Fonction pour créer un modal pour gérer les tags
+function createManageTagsModal() {
+  const modal = document.createElement('div');
+  modal.id = 'manage-tags-modal';
+  modal.style.position = 'fixed';
+  modal.style.top = '50%';
+  modal.style.left = '50%';
+  modal.style.transform = 'translate(-50%, -50%)';
+  modal.style.width = '400px';
+  modal.style.maxHeight = '80vh';
+  modal.style.overflowY = 'auto';
+  modal.style.backgroundColor = '#fff';
+  modal.style.border = '1px solid #ddd';
+  modal.style.borderRadius = '5px';
+  modal.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.2)';
+  modal.style.zIndex = '1001';
+  modal.style.display = 'none';
+
+  const closeButton = document.createElement('button');
+  closeButton.textContent = 'Close';
+  closeButton.style.position = 'absolute';
+  closeButton.style.top = '10px';
+  closeButton.style.right = '10px';
+  closeButton.style.backgroundColor = '#007bff';
+  closeButton.style.color = '#fff';
+  closeButton.style.border = 'none';
+  closeButton.style.padding = '5px 10px';
+  closeButton.style.borderRadius = '5px';
+  closeButton.style.cursor = 'pointer';
+  closeButton.addEventListener('click', () => {
+    toggleManageTagsModal();
+  });
+
+  const modalContent = document.createElement('div');
+  modalContent.id = 'modal-content';
+  modalContent.style.padding = '20px';
+
+  // Créer le contenu du modal ici
+  const modalTitle = document.createElement('h1');
+  modalTitle.textContent = 'Manage Tags';
+  modalContent.appendChild(modalTitle);
+
+  const tagForm = document.createElement('form');
+  tagForm.id = 'tagForm';
+  tagForm.innerHTML = `
+    <div class="form-group">
+      <textarea id="key" class="form-control" placeholder="Tag" required></textarea>
+    </div>
+    <div class="form-group">
+      <textarea id="value" class="form-control" placeholder="Value" required></textarea>
+    </div>
+    <div class="d-flex justify-content-between mb-3">
+      <button type="button" id="addButton" class="btn btn-primary">Add</button>
+      <button type="button" id="editButton" class="btn btn-warning" style="display:none;">Edit</button>
+    </div>
+  `;
+  modalContent.appendChild(tagForm);
+
+  const tagList = document.createElement('ul');
+  tagList.id = 'tagList';
+  tagList.className = 'list-group';
+  modalContent.appendChild(tagList);
+
+  modal.appendChild(closeButton);
+  modal.appendChild(modalContent);
+  document.body.appendChild(modal);
+
+  // Initialiser les événements et le contenu du modal
+  initializeModal();
+}
+
+// Fonction pour initialiser les événements et le contenu du modal
+function initializeModal() {
+  const tagForm = document.getElementById('tagForm');
+  const keyInput = document.getElementById('key');
+  const valueInput = document.getElementById('value');
+  const addButton = document.getElementById('addButton');
+  const editButton = document.getElementById('editButton');
+  let editingKey = null;
+
+  addButton.addEventListener('click', () => {
+    const key = keyInput.value.trim();
+    const value = valueInput.value.trim();
+
+    if (key && value) {
+      chrome.storage.sync.get(['tags'], (result) => {
+        const tags = result.tags || {};
+        tags[key] = value;
+        chrome.storage.sync.set({ tags }, () => {
+          displayTags();
+          keyInput.value = '';
+          valueInput.value = '';
+        });
+      });
+    }
+  });
+
+  editButton.addEventListener('click', () => {
+    const key = keyInput.value.trim();
+    const value = valueInput.value.trim();
+
+    if (key && value && editingKey) {
+      chrome.storage.sync.get(['tags'], (result) => {
+        const tags = result.tags || {};
+        delete tags[editingKey]; // Remove old key if it was edited
+        tags[key] = value;
+        chrome.storage.sync.set({ tags }, () => {
+          displayTags();
+          keyInput.value = '';
+          valueInput.value = '';
+          editButton.style.display = 'none';
+          addButton.style.display = 'inline';
+          editingKey = null;
+        });
+      });
+    }
+  });
+
+  function displayTags() {
+    chrome.storage.sync.get(['tags'], (result) => {
+      const tags = result.tags || {};
+      const tagList = document.getElementById('tagList');
+      tagList.innerHTML = '';
+
+      for (const [key, value] of Object.entries(tags)) {
+        const li = document.createElement('li');
+        li.className = 'list-group-item';
+
+        const keyTextarea = document.createElement('textarea');
+        const valueTextarea = document.createElement('textarea');
+        keyTextarea.value = key;
+        valueTextarea.value = value;
+        keyTextarea.disabled = true;
+        valueTextarea.disabled = true;
+        keyTextarea.classList.add('tag-key', 'form-control', 'mb-2');
+        valueTextarea.classList.add('tag-value', 'form-control', 'mb-2');
+
+        const editButton = document.createElement('button');
+        editButton.textContent = 'Edit';
+        editButton.className = 'btn btn-warning mb-2 mr-2';
+        editButton.addEventListener('click', () => {
+          keyInput.value = key;
+          valueInput.value = value;
+          editButton.style.display = 'inline';
+          addButton.style.display = 'none';
+          editingKey = key;
+        });
+
+        const deleteButton = document.createElement('button');
+        deleteButton.textContent = 'Delete';
+        deleteButton.className = 'btn btn-danger mb-2';
+        deleteButton.addEventListener('click', () => {
+          deleteTag(key);
+        });
+
+        li.appendChild(keyTextarea);
+        li.appendChild(valueTextarea);
+        li.appendChild(editButton);
+        li.appendChild(deleteButton);
+        tagList.appendChild(li);
+      }
+    });
+  }
+
+  function deleteTag(key) {
+    chrome.storage.sync.get(['tags'], (result) => {
+      const tags = result.tags || {};
+      delete tags[key];
+      chrome.storage.sync.set({ tags }, () => {
+        displayTags();
+      });
+    });
+  }
+
+  displayTags();
+}
+
+// Fonction pour basculer la visibilité du modal de gestion des tags
+function toggleManageTagsModal() {
+  const modal = document.getElementById('manage-tags-modal');
+  if (modal.style.display === 'none' || !modal.style.display) {
+    modal.style.display = 'block';
+  } else {
+    modal.style.display = 'none';
+  }
+}
+
+// Injecter les tags, l'icône flottante et le modal lors du chargement du script de contenu
 injectTags();
