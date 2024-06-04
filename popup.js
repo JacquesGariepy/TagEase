@@ -9,10 +9,6 @@ function initializePage() {
   document.getElementById('value').placeholder = chrome.i18n.getMessage('valuePlaceholder');
   document.getElementById('addButton').textContent = chrome.i18n.getMessage('addTag');
   document.getElementById('editButton').textContent = chrome.i18n.getMessage('edit');
-  document.getElementById('footerTitle').textContent = chrome.i18n.getMessage('footerTitle');
-  document.getElementById('footerDescription').textContent = chrome.i18n.getMessage('footerDescription');
-  document.getElementById('footerLink').textContent = chrome.i18n.getMessage('footerLink');
-  document.getElementById('footerCopyright').textContent = chrome.i18n.getMessage('footerCopyright');
 }
 
 // Fonction pour afficher les tags
