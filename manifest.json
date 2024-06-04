@@ -2,8 +2,8 @@
   "manifest_version": 3,
   "name": "TagEase",
   "version": "1.0",
-  "description": "TagEase simplifies the management of tags and values in input fields, making data entry and organization seamless and efficient.",
-  "permissions": ["storage"],
+  "description": "Simplify your tag management",
+  "permissions": ["storage", "activeTab", "system.display"],
   "background": {
     "service_worker": "background.js"
   },
@@ -15,15 +15,22 @@
       "128": "icons/icon128.png"
     }
   },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "default_locale": "en",
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
       "js": ["content.js"]
     }
   ],
-  "options_ui": {
-    "page": "options.html",
-    "open_in_tab": true
-  },
-  "default_locale": "en"
+  "web_accessible_resources": [
+    {
+      "resources": ["popup.html"],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }
