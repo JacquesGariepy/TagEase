@@ -1,5 +1,3 @@
-// content.js
-
 let selectedInput = null;
 let isDragging = false;
 let offset = { x: 0, y: 0 };
@@ -77,7 +75,7 @@ function createTagList(tags) {
   tagList.style.padding = '10px';
   tagList.style.margin = '0';
 
-  for (const [key, value] of Object.entries(tags)) {
+  for (const [key, tag] of Object.entries(tags)) {
     const tagItem = document.createElement('li');
     tagItem.style.marginBottom = '10px';
     tagItem.style.cursor = 'pointer';
@@ -93,7 +91,23 @@ function createTagList(tags) {
     const tagText = document.createElement('span');
     tagText.textContent = key;
     tagText.addEventListener('click', () => {
-      insertTag(value);
+      if (tag.type === 'url') {
+        if (tag.variables && tag.variables.length > 0) {
+          const variables = {};
+          tag.variables.forEach(variable => {
+            const value = prompt(`Enter value for ${variable}:`);
+            if (value !== null) {
+              variables[variable] = value;
+            }
+          });
+          const urlWithVariables = replaceVariablesInUrl(tag.value, variables);
+          window.open(urlWithVariables, '_blank');
+        } else {
+          window.open(tag.value, '_blank');
+        }
+      } else {
+        insertTag(tag.value, tag.type);
+      }
     });
 
     tagItem.appendChild(icon);
@@ -135,9 +149,19 @@ function openManageTagsPopup() {
   chrome.runtime.sendMessage({ action: 'openManageTagsPopup' });
 }
 
+// Fonction pour remplacer les variables dans l'URL
+function replaceVariablesInUrl(url, variables) {
+  let replacedUrl = url;
+  for (const [key, value] of Object.entries(variables)) {
+    const placeholder = `{${key}}`;
+    replacedUrl = replacedUrl.replace(new RegExp(placeholder, 'g'), encodeURIComponent(value));
+  }
+  return replacedUrl;
+}
+
 // Fonction pour insérer un tag dans le champ de saisie sélectionné
-function insertTag(value) {
-  if (selectedInput) {
+function insertTag(value, type) {
+  if (selectedInput && type !== 'url') {
     const start = selectedInput.selectionStart;
     const end = selectedInput.selectionEnd;
     selectedInput.value = selectedInput.value.substring(0, start) + value + selectedInput.value.substring(end);

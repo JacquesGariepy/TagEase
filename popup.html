@@ -15,6 +15,18 @@
       <div class="form-group">
         <textarea id="value" class="form-control" placeholder="Value" required></textarea>
       </div>
+      <div class="form-group">
+        <select id="type" class="form-control">
+          <option value="text">Text</option>
+          <option value="url">URL</option>
+          <option value="prompt">Prompt</option>
+          <option value="email">Email</option>
+          <option value="number">Number</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <textarea id="variables" class="form-control" placeholder="Variables (comma separated, e.g. model, q)"></textarea>
+      </div>
       <div class="d-flex justify-content-between mb-3">
         <button type="button" id="addButton" class="btn btn-primary">Add</button>
         <button type="button" id="editButton" class="btn btn-warning" style="display:none;">Edit</button>
@@ -22,9 +34,10 @@
     </form>
     <ul id="tagList" class="list-group"></ul>
     <hr>
+    <p id="footerTitle" style="text-align: center;">
+      <!-- Le texte sera défini par le script -->
+    </p>
     <p style="text-align: center;">
-      <strong>TagEase</strong><br>
-      Simplify your tag management<br>
       <a href="https://yourwebsite.com" target="_blank">Visit our website</a><br>
       &copy; 2024 Your Company
     </p>
